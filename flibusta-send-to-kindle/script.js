@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Flibusta to Kindle
 // @namespace    http://www.philippatrick.com/
-// @version      0.2
+// @version      0.3
 // @description  Sends books from Flibusta.net to kindle
 // @author       Philip Patrick
 // @supportURL   https://github.com/stpatrick2016/tampermonkey
@@ -42,7 +42,7 @@ div.className = 'block block-librusec';
 var link = document.createElement('a');
 link.href = '#';
 link.innerText = 'Конфигурация Kindle';
-link.onclick = function(){GM_config.open();}
+link.onclick = function(){GM_config.open(); return false;}
 div.appendChild(link);
 prev.parentNode.insertBefore(div, prev);
 
