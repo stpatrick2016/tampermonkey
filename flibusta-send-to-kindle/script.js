@@ -1,9 +1,11 @@
 // ==UserScript==
 // @name         Flibusta to Kindle
 // @namespace    http://www.philippatrick.com/
-// @version      0.1
+// @version      0.2
 // @description  Sends books from Flibusta.net to kindle
 // @author       Philip Patrick
+// @supportURL   https://github.com/stpatrick2016/tampermonkey
+// @downloadURL  https://raw.githubusercontent.com/stpatrick2016/tampermonkey/master/flibusta-send-to-kindle/script.js
 // @match        http://flibusta.is/a/*
 // @require      https://openuserjs.org/src/libs/sizzle/GM_config.js
 // @require      https://sdk.amazonaws.com/js/aws-sdk-2.275.1.min.js
