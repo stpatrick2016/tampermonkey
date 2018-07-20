@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Flibusta to Kindle
 // @namespace    http://www.philippatrick.com/
-// @version      0.3
+// @version      0.4
 // @description  Sends books from Flibusta.net to kindle
 // @author       Philip Patrick
 // @supportURL   https://github.com/stpatrick2016/tampermonkey
@@ -14,6 +14,10 @@
 // ==/UserScript==
 
 'use strict';
+
+//constants
+var LINK_ID_PREFIX = 'kindle_link_';
+var LINK_TEXT = '(в kindle)';
 
 GM_config.init(
     {
@@ -50,7 +54,7 @@ prev.parentNode.insertBefore(div, prev);
 var author = document.getElementsByClassName('title')[0].innerText;
 
 //find all links leading to books
-var rePlacement = /\/b\/\d+\/download/i
+var rePlacement = /\/b\/(\d+)\/(?:download|mobi)$/i
 var reName = /\/b\/\d+$/i
 var links = document.getElementsByTagName('a');
 var title = '';
@@ -61,26 +65,37 @@ for (var i=0; i<links.length; i++)
     {
         title = links[i].innerText;
     }
-    if(rePlacement.test(href))
+    var match = rePlacement.exec(href);
+    if(match != null)
     {
+        var bookId = match[1];
         link = document.createElement('a');
-        link.href = '#';
-        link.innerText = '(в kindle)';
+        link.href = '#' + bookId;
+        link.id = LINK_ID_PREFIX + bookId;
+        link.innerText = LINK_TEXT;
         link.setAttribute('data-author', author);
         link.setAttribute('data-title', title);
-        link.setAttribute('data-url', href.replace('/download', ''));
-        link.onclick = function(){sendToKindle(this.getAttribute('data-author'), this.getAttribute('data-title'), this.getAttribute('data-url')); return false;}
+        link.setAttribute('data-url', href.replace(/\/download|mobi/i, ''));
+        link.setAttribute('data-id', bookId);
+        link.onclick = function(){sendToKindle(this); return false;}
         links[i].parentNode.insertBefore(link, links[i].nextSibling);
         title = ''; //clear the title, so next line will start fresh
     }
 }
 
-function sendToKindle(author, title, url)
+function sendToKindle(elem)
 {
+    //read the data from the element
+    var author = elem.getAttribute('data-author');
+    var title = elem.getAttribute('data-title');
+    var url = elem.getAttribute('data-url');
+    var bookId = elem.getAttribute('data-id');
+
     var data = {
         "title": title,
         "author": author,
         "url": url,
+        "bookId": bookId,
         "source": document.location.href
     };
     var params = {
@@ -92,8 +107,8 @@ function sendToKindle(author, title, url)
 
     //read the access token from the storage
     var accessToken = GM_config.get('AccessToken').split(',');
-    console.log("Access Key ID: " + accessToken[0]);
-    console.log("Secret access key: " + accessToken[1]);
+    //console.log("Access Key ID: " + accessToken[0]);
+    //console.log("Secret access key: " + accessToken[1]);
 
     var sqs = new AWS.SQS({accessKeyId: accessToken[0], secretAccessKey: accessToken[1], region: "eu-central-1"});
     sqs.sendMessage(params, function(err, data) {
@@ -103,7 +118,8 @@ function sendToKindle(author, title, url)
         }
         else {
             console.log(data);           // successful response
-            alert('Послано успешно');
+            elem.innerText = '(Послано успешно)';
+            window.setTimeout(function(){document.getElementById(LINK_ID_PREFIX + bookId).innerText = LINK_TEXT;}, 2000);
         }
     });
 }
