@@ -1,12 +1,13 @@
 // ==UserScript==
 // @name         Flibusta to Kindle
 // @namespace    http://www.philippatrick.com/
-// @version      0.4
+// @version      0.5
 // @description  Sends books from Flibusta.net to kindle
 // @author       Philip Patrick
 // @supportURL   https://github.com/stpatrick2016/tampermonkey
 // @downloadURL  https://raw.githubusercontent.com/stpatrick2016/tampermonkey/master/flibusta-send-to-kindle/script.js
 // @match        http://flibusta.is/a/*
+// @match        http://flibusta.is/b/*
 // @require      https://openuserjs.org/src/libs/sizzle/GM_config.js
 // @require      https://sdk.amazonaws.com/js/aws-sdk-2.275.1.min.js
 // @grant        GM_getValue
@@ -40,6 +41,7 @@ AWS.config.apiVersions = {
   // other service API versions
 };
 
+//add link for configuration
 var prev = document.getElementById('block-librusec-booksearch');
 var div = document.createElement('div');
 div.className = 'block block-librusec';
@@ -50,21 +52,49 @@ link.onclick = function(){GM_config.open(); return false;}
 div.appendChild(link);
 prev.parentNode.insertBefore(div, prev);
 
-//read author name
-var author = document.getElementsByClassName('title')[0].innerText;
+//detect the page type we are on
+var pageType = 'unknown';
+if(document.location.href.search(/\/a\/\d+/i) >= 0)
+{
+    pageType = 'author';
+}
+else if(document.location.href.search(/\/b\/\d+/i) >= 0)
+{
+    pageType = 'book';
+}
+
+//read author and title
+var title = '';
+var author = '';
+switch(pageType)
+{
+    case 'author':
+        author = document.getElementsByClassName('title')[0].innerText;
+        break;
+    case 'book':
+        title = document.getElementsByClassName('title')[0].innerText;
+        title = title.replace(' (fb2)', ''); //remove the trailing (fb2)
+        break;
+}
+
+console.log('Page type: ' + pageType + '. Author: ' + author + '. Title: ' + title);
 
 //find all links leading to books
 var rePlacement = /\/b\/(\d+)\/(?:download|mobi)$/i
 var reName = /\/b\/\d+$/i
 var links = document.getElementsByTagName('a');
-var title = '';
 for (var i=0; i<links.length; i++)
 {
     var href = links[i].href;
-    if(reName.test(href))
+    if(pageType == 'author' && reName.test(href))
     {
         title = links[i].innerText;
     }
+    if(pageType == 'book' && /\/a\/\d+$/i.test(href))
+    {
+        author = links[i].innerText;
+    }
+
     var match = rePlacement.exec(href);
     if(match != null)
     {
@@ -119,7 +149,8 @@ function sendToKindle(elem)
         else {
             console.log(data);           // successful response
             elem.innerText = '(Послано успешно)';
-            window.setTimeout(function(){document.getElementById(LINK_ID_PREFIX + bookId).innerText = LINK_TEXT;}, 2000);
+            console.log('Book sent. Author: ' + author + '. Title: ' + title + '. Url: ' + url);
+            window.setTimeout(function(){document.getElementById(LINK_ID_PREFIX + bookId).innerText = LINK_TEXT;}, 3000);
         }
     });
 }
