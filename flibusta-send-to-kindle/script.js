@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Flibusta to Kindle
-// @namespace    http://www.philippatrick.com/
+// @namespace    http://patrick.dev/
 // @version      0.5
 // @description  Sends books from Flibusta.net to kindle
 // @author       Philip Patrick
