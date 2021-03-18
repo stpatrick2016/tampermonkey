@@ -44,6 +44,7 @@
     }
 
     setInputValue("zip", zipcode);
+    doButtonClick("fame-promocode__submit-button");
 })();
 
 function setInputValue(name, value) {
@@ -55,6 +56,13 @@ function setInputValue(name, value) {
         inputs[0].classList.remove('hkjs--empty');
         inputs[0].classList.add('hkjs--not-empty');
         inputs[0].dispatchEvent(new KeyboardEvent("keyup", {'key':39})); //39 - arrow right
+    }
+}
+
+function doButtonClick(id){
+    var btn = document.getElementById(id);
+    if(btn != null) {
+        btn.click();
     }
 }
 
