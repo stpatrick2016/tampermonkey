@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Autofeedback on eBay
-// @namespace    http://www.philippatrick.net/
+// @namespace    http://patrick.dev/
 // @version      0.1
 // @description  Autofill feedback on ebay
 // @author       Philip Patrick
