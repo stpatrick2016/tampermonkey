@@ -21,30 +21,32 @@
     const zipcode = "123456";
     const promoCode = "LUCKY150";
 
-    setInputValue("first_name", firstName);
-    setInputValue("last_name", lastName);
-    setInputValue("email", email);
-    setInputValue("address1", address1);
-    setInputValue("address2", address2);
-    setInputValue("city", city);
-    setInputValue("promocode", promoCode);
+    setTimeout(() => {
+               setInputValue("first_name", firstName);
+               setInputValue("last_name", lastName);
+               setInputValue("email", email);
+               setInputValue("address1", address1);
+               setInputValue("address2", address2);
+               setInputValue("city", city);
+               setInputValue("promocode", promoCode);
 
-    let countrySelector = document.getElementById("country-select");
-    if(countrySelector != null) {
-        for(let i=0; i<countrySelector.options.length; i++) {
-            if(countrySelector.options[i].text === country) {
-                countrySelector.options.selectedIndex = i;
-                break;
-            }
-        }
+               let countrySelector = document.getElementById("country-select");
+               if(countrySelector != null) {
+               for(let i=0; i<countrySelector.options.length; i++) {
+               if(countrySelector.options[i].text === country) {
+               countrySelector.options.selectedIndex = i;
+               break;
+               }
+               }
 
-        let evt = document.createEvent('HTMLEvents');
-        evt.initEvent('change', false, false);
-        countrySelector.dispatchEvent(evt);
-    }
+               let evt = document.createEvent('HTMLEvents');
+               evt.initEvent('change', false, false);
+               countrySelector.dispatchEvent(evt);
+               }
 
-    setInputValue("zip", zipcode);
-    doButtonClick("fame-promocode__submit-button");
+               setInputValue("zip", zipcode);
+               doButtonClick("fame-promocode__submit-button");
+    }, 700); //on 500, form is cleared
 })();
 
 function setInputValue(name, value) {
