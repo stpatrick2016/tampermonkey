@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Flibusta to Kindle
 // @namespace    http://patrick.dev/
-// @version      0.5
+// @version      0.9
 // @description  Sends books from Flibusta.net to kindle
 // @author       Philip Patrick
 // @supportURL   https://github.com/stpatrick2016/tampermonkey
@@ -9,7 +9,6 @@
 // @match        http://flibusta.is/a/*
 // @match        http://flibusta.is/b/*
 // @require      https://openuserjs.org/src/libs/sizzle/GM_config.js
-// @require      https://sdk.amazonaws.com/js/aws-sdk-2.275.1.min.js
 // @grant        GM_getValue
 // @grant        GM_setValue
 // ==/UserScript==
@@ -31,15 +30,16 @@ GM_config.init(
                 'label': 'Access Token', // Appears next to field
                 'type': 'text', // Makes this setting a text field
                 'default': '' // Default value if user doesn't change it
+            },
+            'Email':
+            {
+                'label': 'Device e-mail',
+                'type': 'text',
+                'default': ''
             }
         }
     });
 
-//setup AWS access
-AWS.config.apiVersions = {
-  sqs: '2012-11-05',
-  // other service API versions
-};
 
 //add link for configuration
 var prev = document.getElementById('block-librusec-booksearch');
@@ -116,41 +116,35 @@ for (var i=0; i<links.length; i++)
 function sendToKindle(elem)
 {
     //read the data from the element
-    var author = elem.getAttribute('data-author');
-    var title = elem.getAttribute('data-title');
     var url = elem.getAttribute('data-url');
     var bookId = elem.getAttribute('data-id');
 
-    var data = {
-        "title": title,
-        "author": author,
-        "url": url,
-        "bookId": bookId,
-        "source": document.location.href
-    };
-    var params = {
-        MessageBody: JSON.stringify(data),
-        QueueUrl: "https://sqs.eu-central-1.amazonaws.com/238645272082/books-inbox",
-        //MessageDeduplicationId: url,
-        //MessageGroupId: author
-    };
+    console.log("Url:" + url);
+    console.log("Book id:" + bookId);
 
     //read the access token from the storage
-    var accessToken = GM_config.get('AccessToken').split(',');
-    //console.log("Access Key ID: " + accessToken[0]);
-    //console.log("Secret access key: " + accessToken[1]);
+    var accessToken = GM_config.get('AccessToken');
+    var deviceMail = GM_config.get('Email');
 
-    var sqs = new AWS.SQS({accessKeyId: accessToken[0], secretAccessKey: accessToken[1], region: "eu-central-1"});
-    sqs.sendMessage(params, function(err, data) {
-        if (err) {
-            console.log(err, err.stack); // an error occurred
-            alert('Не получилось послать. Ошибка: ' + err);
-        }
-        else {
-            console.log(data);           // successful response
-            elem.innerText = '(Послано успешно)';
-            console.log('Book sent. Author: ' + author + '. Title: ' + title + '. Url: ' + url);
-            window.setTimeout(function(){document.getElementById(LINK_ID_PREFIX + bookId).innerText = LINK_TEXT;}, 3000);
-        }
-    });
+    var data = {
+        "address": deviceMail,
+        "bookSource": url
+    };
+
+    var options = {
+        method: 'POST',
+        cache: 'no-cache',
+        mode: 'cors',
+        headers: {
+            'X-Api-Key': accessToken,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify( data )
+    };
+    fetch( 'https://uvmkrdedhj.execute-api.eu-central-1.amazonaws.com/dev/books', options )
+        .then( response => {
+        console.log("Response: " + response);
+        elem.innerText = '(Послано успешно)';
+        window.setTimeout(function(){document.getElementById(LINK_ID_PREFIX + bookId).innerText = LINK_TEXT;}, 3000);
+    } );
 }
